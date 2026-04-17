@@ -6,20 +6,25 @@ from langchain.agents import create_agent
 from datetime import datetime
 import gradio as gr
 from langgraph.checkpoint.sqlite import SqliteSaver, sqlite3
+from langchain_tavily import TavilySearch
 
-# Environment variables
+# Load Environment variable
 load_dotenv()
+
 
 # Agent Tools
 def get_date():
     """Get the current date"""
     return datetime.now().strftime("%m-%d-%Y")
 
+search_tool = TavilySearch()
+
 # System prompt for the model
 system_prompt = """
 You are a helpful assistant. 
 Answer all user queries in a kind manner.
 Use the get_date tool ONLY when the user is explicitly asking about today's date.
+Use the search_tool for answering questions that require up to date information.
 """
 
 # Establish an sqlite3 connection
@@ -30,7 +35,7 @@ checkpointer = SqliteSaver(conn)
 llm = ChatOllama(model="qwen3:8b")
 agent = create_agent(
     model=llm,
-    tools=[get_date],
+    tools=[get_date, search_tool],
     system_prompt=system_prompt, checkpointer=checkpointer
 )
 
